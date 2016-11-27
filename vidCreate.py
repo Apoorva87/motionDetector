@@ -5,6 +5,7 @@ def imageOpen():
     cv2.imshow("source",img)
     cv2.waitKey(0)
 
+
 cap = cv2.VideoCapture(0)
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter('output.avi',fourcc, 20.0, (640,480))
