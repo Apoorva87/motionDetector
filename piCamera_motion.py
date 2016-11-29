@@ -3,35 +3,27 @@ import numpy as np
 import cv2
 import imutils
 import datetime
+import time
+from picamera.array import PiRGBArray
+from picamera import PiCamera
+from fractions import Fraction
 
-camera     = cv2.VideoCapture(0)
-#camera    = cv2.VideoCapture('Output.avi')
+
+camera            = PiCamera()
+camera.resolution =(1280,720)
+camera.framerate  = 12
+rawCapture        = PiRGBArray(camera)
+time.sleep(0.1)
+
 fgbg       = cv2.BackgroundSubtractorMOG2()
 fourcc     = cv2.cv.CV_FOURCC(*'XVID')
-out        = cv2.VideoWriter('video.avi',fourcc, 20.0, (640,480))
-firstFrame = None
-while True:
-    ret, frame = camera.read()
+out        = cv2.VideoWriter('video1.avi',fourcc, 20.0, (640,480))
+
+for image in camera.capture_continuous(rawCapture, format='bgr', use_video_port=True):
+    frame      = image.array
     text       = 'Unoccupied'
-    print "Camera reading ...", ret
-    if not ret:
-        break;
-    ##1 Method 1
     fgmask = fgbg.apply(frame)
-    ##2 Method 2
-    #frame      = imutils.resize(frame,width=500)
-    #gray       = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    #gray       = cv2.GaussianBlur(gray,(21,21),0)
-    #if firstFrame is None:
-    #    firstFrame = gray
-    #    continue
-    #frameDelta = cv2.absdiff(firstFrame, gray)
-    #thresh     = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
-    #thresh     = cv2.dilate(thresh, None, iterations=2)
-    #(_,cnts2, _) = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    #cv2.imshow('Baldy stuff', thresh)
-    #cv2.imshow('BG stuff', fgmask)
-    (_, cnts1, _) = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    (cnts1, _) = cv2.findContours(fgmask.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     for c in cnts1:
         #print("area ",cv2.contourArea(c))
         if cv2.contourArea(c) < 1000:
@@ -52,6 +44,7 @@ while True:
     #cv2.imshow("Thresh", thresh)
     #cv2.imshow("Frame Delta", frameDelta)
     key = cv2.waitKey(1) & 0xFF
+    rawCapture.truncate(0)
 
     # if the `q` key is pressed, break from the lop
     if key == ord("q"):
@@ -61,3 +54,4 @@ while True:
 camera.release()
 out.release()
 cv2.destroyAllWindows()
+
