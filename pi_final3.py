@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG,
 class motionSense(threading.Thread):
     startF  = True
     stopF   = False
-    def __init__(self, output='video1.avi'):
+    def __init__(self, output='motion.avi'):
       threading.Thread.__init__(self)
       self.fgbg   = cv2.BackgroundSubtractorMOG2()
       self.fourcc = cv2.cv.CV_FOURCC(*'XVID')
@@ -116,9 +116,6 @@ class motionSense(threading.Thread):
         finally:
           camLock.release()
           logging.debug("[MS] Releasing camera lock")
-          #if (self.__class__.startF == False):
-          #  self.__class__.stopF = True
-          time.sleep(0.5)
 
     
 
@@ -173,6 +170,7 @@ class Camera(object):
                   # if there hasn't been any clients asking for frames in
                   # the last 10 seconds stop the thread
                   if time.time() - cls.last_access > 3:
+                      logging.debug("[FL] No request from web browser")
                       break
                   if (frameCnt > 16):
                       logging.debug("[FL] Finished sending frames for webbrowser")
@@ -214,18 +212,17 @@ def shutdown():
   return 'Server shutting down'
 
 if __name__ == '__main__':
-    print "Prev line"
     ms      = motionSense();
     ms.start() 
     app.run(host='192.168.2.2', threaded=True, debug=False)
     print "Next line"
     try:
       while True:
-        time.sleep(2)
+        time.sleep(3)
         continue
     except(KeyboardInterrupt, SystemExit):
       motionSense.stop()
       ms.join()
       logging.debug('Ctr-C called...')
-      exit(1)
+      exit(0)
 
