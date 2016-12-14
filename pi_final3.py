@@ -19,6 +19,7 @@ camLock = threading.RLock()
 logging.basicConfig(level=logging.DEBUG,
                     format='([(%(relativeCreated)4d) ms] %(threadName)-10s) %(message)s',
                    )
+freeStream = False
 
 class motionSense(threading.Thread):
     startF  = True
@@ -46,7 +47,7 @@ class motionSense(threading.Thread):
 
     def run(self):
       logging.debug('[MS] Motion sensing started...')
-      while self.__class__.stopF == False:
+      while self.__class__.stopF == False and freeStream == False:
         avg      = None
         frameCnt = 0
         camLock.acquire()
@@ -172,7 +173,7 @@ class Camera(object):
                   if time.time() - cls.last_access > 3:
                       logging.debug("[FL] No request from web browser")
                       break
-                  if (frameCnt > 16):
+                  if (frameCnt > 16) and freeStream == False:
                       logging.debug("[FL] Finished sending frames for webbrowser")
                       break
                   frameCnt  = frameCnt + 1
@@ -198,11 +199,25 @@ def shutdown_server():
 @app.route('/')
 def index():
     """Video streaming home page."""
+    logging.debug("[FL] Index html...")
     return render_template('index.html')
+
+@app.route('/freestream')
+def freestream():
+  global freeStream
+  freeStream = True
+  return render_template('index.html')
+
+@app.route('/sharestream')
+def sharestream():
+  global freeStream
+  freeStream = False
+  return render_template('index.html')
 
 @app.route('/video_feed')
 def video_feed():
     """Video streaming route. Put this in the src attribute of an img tag."""
+    logging.debug("[FL] beginning video feed...")
     return Response(gen(Camera()),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
@@ -214,8 +229,8 @@ def shutdown():
 if __name__ == '__main__':
     ms      = motionSense();
     ms.start() 
-    app.run(host='192.168.2.2', threaded=True, debug=False)
-    print "Next line"
+    #app.run(host='192.168.2.2', port=int('5000'), threaded=True, debug=False)
+    app.run(host='0.0.0.0', port=int('80'),  debug=False)
     try:
       while True:
         time.sleep(3)

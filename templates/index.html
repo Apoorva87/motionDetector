@@ -3,7 +3,10 @@
     <title>Video Streaming Demonstration</title>
   </head>
   <body>
-    <h1>Video Streaming Demonstration</h1>
+    <h1>IP Camera feed</h1>
     <img src="{{ url_for('video_feed') }}">
+    <input type=button onClick="location.href='/shutdown'" value='shutdown'>
+    <input type=button onClick="location.href='/freestream'" value='FreeStream'>
+    <input type=button onClick="location.href='/sharestream'" value='ShareStream'>
   </body>
-</html>>
+</html>

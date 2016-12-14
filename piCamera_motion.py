@@ -41,6 +41,7 @@ for image in camera.capture_continuous(rawCapture, format='bgr', use_video_port=
     cv2.imshow("Security Feed", frame)
     if text == 'Occupied':
       out.write(frame)
+    res, temp = cv2.imencode('.jpg',frame)
     #cv2.imshow("Thresh", thresh)
     #cv2.imshow("Frame Delta", frameDelta)
     key = cv2.waitKey(1) & 0xFF
